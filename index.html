@@ -138,10 +138,26 @@
   .result-banner.lose { color: var(--bad); }
 
   /* Settings */
-  details.settings { max-width: 900px; width: 100%; margin-top: 18px; background: var(--panel); border: 1px solid var(--border); border-radius: 14px; padding: 4px 20px; }
-  details.settings summary { cursor: pointer; padding: 14px 0; font-weight: 600; color: var(--muted); list-style: none; }
-  details.settings summary::-webkit-details-marker { display: none; }
+  details.settings, details.tips { max-width: 900px; width: 100%; margin-top: 18px; background: var(--panel); border: 1px solid var(--border); border-radius: 14px; padding: 4px 20px; }
+  details.settings summary, details.tips summary { cursor: pointer; padding: 14px 0; font-weight: 600; color: var(--muted); list-style: none; }
+  details.settings summary::-webkit-details-marker, details.tips summary::-webkit-details-marker { display: none; }
   details.settings summary::before { content: "⚙ "; }
+  details.tips summary::before { content: "💡 "; }
+
+  /* Tips & tricks content */
+  .tips-body { padding: 6px 0 16px; border-top: 1px solid var(--border); color: var(--text); line-height: 1.55; }
+  .tips-body p { margin: 12px 0; }
+  .tips-body h4 { margin: 18px 0 6px; font-size: .98rem; color: var(--accent); }
+  .tips-body ul { margin: 6px 0; padding-left: 22px; }
+  .tips-body li { margin: 5px 0; }
+  .tips-body .muted { color: var(--muted); }
+
+  /* Card pool preview (the fixed set of cards in play this game) */
+  .pool-preview { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-top: 16px; padding: 12px 14px; background: var(--panel-2); border: 1px solid var(--border); border-radius: 12px; }
+  .pool-label { color: var(--muted); font-size: .85rem; }
+  .pool-chips { display: flex; gap: 8px; flex-wrap: wrap; }
+  .pool-chip { font-size: 26px; width: 42px; height: 42px; display: flex; align-items: center; justify-content: center; background: var(--panel); border: 1px solid var(--border); border-radius: 9px; user-select: none; }
+  .pool-shuffle { margin-left: auto; padding: 7px 12px; font-size: .85rem; }
   .setting { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 12px 0; border-top: 1px solid var(--border); flex-wrap: wrap; }
   .setting label { font-weight: 500; }
   .setting .hint { color: var(--muted); font-size: .82rem; display: block; margin-top: 2px; font-weight: 400; }
@@ -169,6 +185,13 @@
       <div class="msg" id="stageMsg">Press <b>Start round</b> to begin. Watch the sequence, then show it back one card at a time.</div>
     </div>
     <div class="progress-dots" id="dots"></div>
+
+    <!-- The fixed pool of cards that can be drawn this game -->
+    <div class="pool-preview" id="poolPreview">
+      <span class="pool-label">Cards in play (<span id="poolCount">8</span>):</span>
+      <div class="pool-chips" id="poolChips"></div>
+      <button class="ghost pool-shuffle" id="btnShuffle" title="Draw a fresh set of cards from the full pool">🔀 New set</button>
+    </div>
 
     <!-- Recall area (card-by-card) -->
     <div id="recallArea" style="display:none;">
@@ -252,6 +275,36 @@
     </div>
   </details>
 
+  <details class="tips" id="tipsPanel">
+    <summary>Tips &amp; tricks — how to win</summary>
+    <div class="tips-body">
+      <p>The cards are already vivid pictures — that's your biggest advantage. Don't recode them into letters or short codes: that throws the advantage away and forces a double translation (icon &rarr; code while watching, then code &rarr; icon while showing). Arbitrary letter strings are exactly what memory is worst at. Work with the images directly.</p>
+
+      <h4>Link the images into a story</h4>
+      <p>Chain each card to the next with a vivid, exaggerated, cause-and-effect scene. For ⛵ 🪣 🐴: <span class="muted">"a sailboat capsizes into a giant bucket, and a horse drinks it dry."</span> Replay the story forward at recall and the order comes out on its own.</p>
+      <ul>
+        <li><b>Order is baked in.</b> A causal chain enforces the sequence, which is the hard part of the game.</li>
+        <li><b>Repeats are easy.</b> "The horse shows up <i>again</i>, now kicking a door" handles a second 🐴 cleanly, where a letter string just gives you two identical letters you'll transpose.</li>
+        <li><b>Say the name as you picture it.</b> Image + word together sticks far better than either alone.</li>
+      </ul>
+
+      <h4>Scale the technique to the length</h4>
+      <ul>
+        <li><b>3–5 cards:</b> skip the story. Just repeat the names in a tight loop ("boat-bucket-horse"). Fast and enough.</li>
+        <li><b>6–10 cards:</b> use the linking story above.</li>
+        <li><b>10+ cards:</b> use a memory palace — walk a familiar route (front door, couch, fridge…) and drop one card at each spot. This scales essentially without limit.</li>
+      </ul>
+
+      <h4>In the moment</h4>
+      <ul>
+        <li><b>Watch actively.</b> Start building the story on card 1 — don't passively watch and reconstruct later.</li>
+        <li><b>Chunk in 3s.</b> One scene per ~3 cards.</li>
+        <li><b>Trust the replay.</b> On the beat, read the story off in order — don't hunt the grid.</li>
+        <li><b>Study the pool.</b> The cards in play are fixed for the whole game (shown above the board), so get familiar with the set before you start.</li>
+      </ul>
+    </div>
+  </details>
+
   <p class="footnote">
     Watch the sequence &rarr; on <b>3-2-1</b>, show your cards one at a time at the beat &rarr; no peeking back, no rearranging.<br>
     Get the whole sequence right to advance. Session best = longest sequence you've shown perfectly. Good luck next week 🍀
@@ -273,6 +326,27 @@
   function saveCfg() { sessionStorage.setItem("ft_cfg", JSON.stringify(cfg)); }
   let cfg = loadCfg();
 
+  // ---- pool order: a shuffled permutation of POOL indices; first activePoolSize are the cards in play ----
+  function loadPoolOrder() {
+    try {
+      const saved = JSON.parse(sessionStorage.getItem("ft_pool") || "null");
+      if (Array.isArray(saved) && saved.length === POOL.length &&
+          saved.every(n => Number.isInteger(n) && n >= 0 && n < POOL.length) &&
+          new Set(saved).size === POOL.length) {
+        return saved;
+      }
+    } catch (e) {}
+    return POOL.map((_, i) => i);
+  }
+  function savePoolOrder() { sessionStorage.setItem("ft_pool", JSON.stringify(poolOrder)); }
+  function shufflePool() {  // Fisher-Yates over the whole order, so the visible first-N becomes a fresh subset
+    for (let i = poolOrder.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      const tmp = poolOrder[i]; poolOrder[i] = poolOrder[j]; poolOrder[j] = tmp;
+    }
+    savePoolOrder();
+  }
+
   // ---- session stats ----
   const session = {
     best: Number(sessionStorage.getItem("ft_best") || 0),
@@ -284,6 +358,7 @@
   const $ = (id) => document.getElementById(id);
   const stage = $("stage"), dots = $("dots");
   const recallArea = $("recallArea"), slotChips = $("slotChips"), cardGrid = $("cardGrid");
+  const poolPreview = $("poolPreview"), poolChips = $("poolChips"), poolCount = $("poolCount"), btnShuffle = $("btnShuffle");
   const tempo = $("tempo"), tempoBar = $("tempoBar");
   const revealRow = $("revealRow"), revealLegend = $("revealLegend"), resultBanner = $("resultBanner");
   const btnStart = $("btnStart"), btnNext = $("btnNext"), btnNewGame = $("btnNewGame"), btnNewSession = $("btnNewSession");
@@ -292,6 +367,8 @@
 
   // ---- game state ----
   let currentLen = cfg.startLen;
+  let activePoolSize = cfg.setSize;  // pool size snapshot; frozen for the whole game so the deck is static across rounds
+  let poolOrder = loadPoolOrder();   // permutation of POOL indices; the first activePoolSize entries are the cards in play
   let deck = [];
   let sequence = [];
   let picks = [];            // player's shown cards; picks[i] may be undefined (never shown)
@@ -305,7 +382,7 @@
   function clearTimers() { timers.forEach(clearTimeout); timers = []; if (rafId) { cancelAnimationFrame(rafId); rafId = null; } }
   function later(fn, ms) { const t = setTimeout(fn, ms); timers.push(t); return t; }
 
-  function buildDeck() { const n = Math.min(cfg.setSize, POOL.length); deck = []; for (let i = 0; i < n; i++) deck.push(i); }
+  function buildDeck() { const n = Math.min(activePoolSize, POOL.length); deck = poolOrder.slice(0, n); }
   function updateStats() { statLen.textContent = currentLen; statBest.textContent = session.best; statGames.textContent = session.games; }
 
   // ---------- SETTINGS UI ----------
@@ -330,7 +407,7 @@
 
   function onSettingChanged() {
     if (gameActive) { settingsLocked.style.visibility = "visible"; }
-    else { currentLen = cfg.startLen; updateStats(); }
+    else { currentLen = cfg.startLen; activePoolSize = cfg.setSize; updateStats(); refreshPool(); }
   }
 
   // ---------- RENDER HELPERS ----------
@@ -343,6 +420,24 @@
     }
   }
   function showGlyph(cardIdx) { stage.innerHTML = ""; const g = document.createElement("div"); g.className = "glyph"; g.textContent = POOL[cardIdx]; stage.appendChild(g); }
+  // Show the fixed card pool only between rounds (idle/done); during play the recall grid already shows every card.
+  function refreshPool() {
+    const showIt = (phase === "idle" || phase === "done");
+    poolPreview.style.display = showIt ? "" : "none";
+    if (!showIt) return;
+    const size = Math.min(gameActive ? activePoolSize : cfg.setSize, POOL.length);
+    poolCount.textContent = size;
+    poolChips.innerHTML = "";
+    for (let i = 0; i < size; i++) {
+      const c = document.createElement("div");
+      c.className = "pool-chip";
+      c.textContent = POOL[poolOrder[i]];
+      poolChips.appendChild(c);
+    }
+    // Shuffling mid-game would change the locked set, so only allow it between games.
+    btnShuffle.disabled = gameActive;
+    btnShuffle.title = gameActive ? "Finish this game to draw a new set" : "Draw a fresh set of cards from the full pool";
+  }
   function showMessage(html) { stage.innerHTML = '<div class="msg">' + html + '</div>'; }
   function showControls(map) {
     btnStart.style.display   = map.start   ? "" : "none";
@@ -366,6 +461,7 @@
     resultBanner.style.display = "none";
     settingsLocked.style.visibility = "visible";
     updateStats();
+    refreshPool();
     showControls({});
     playSequence();
   }
@@ -551,6 +647,7 @@
 
   function finishReveal(allCorrect) {
     phase = "done";
+    refreshPool();
     resultBanner.style.display = "";
     if (allCorrect) {
       if (currentLen > session.best) session.best = currentLen;
@@ -577,6 +674,7 @@
     clearTimers();
     if (gameActive) endGame();
     currentLen = cfg.startLen;
+    activePoolSize = cfg.setSize;
     phase = "idle";
     picks = []; sequence = []; recallIndex = 0;
     recallArea.style.display = "none";
@@ -589,15 +687,17 @@
     showControls({ start: true });
     btnStart.textContent = "Start round";
     updateStats();
+    refreshPool();
   }
 
   function resetSession() { clearTimers(); session.best = 0; session.games = 0; saveSession(); gameActive = false; newGame(); }
 
   // ---------- EVENT WIRING ----------
-  btnStart.addEventListener("click", () => { settingsLocked.style.visibility = "visible"; startRound(); });
+  btnStart.addEventListener("click", () => { activePoolSize = cfg.setSize; settingsLocked.style.visibility = "visible"; startRound(); });
   btnNext.addEventListener("click", nextRound);
   btnNewGame.addEventListener("click", newGame);
   btnNewSession.addEventListener("click", resetSession);
+  btnShuffle.addEventListener("click", () => { if (gameActive) return; shufflePool(); refreshPool(); });
 
   document.addEventListener("keydown", (e) => {
     if (phase === "recall") {
@@ -611,7 +711,9 @@
 
   // ---------- INIT ----------
   currentLen = cfg.startLen;
+  activePoolSize = cfg.setSize;
   updateStats();
+  refreshPool();
   showControls({ start: true });
 })();
 </script>
