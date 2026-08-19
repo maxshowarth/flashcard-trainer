@@ -15,6 +15,7 @@
     --accent: #4da3ff;
     --good: #37d67a;
     --bad: #ff5c6c;
+    --warn: #ffbf47;
     --shadow: 0 6px 24px rgba(0,0,0,.35);
   }
   * { box-sizing: border-box; }
@@ -41,12 +42,7 @@
   h1 { font-size: 1.35rem; margin: 0; letter-spacing: .3px; }
   .stats { display: flex; gap: 18px; color: var(--muted); font-size: .9rem; }
   .stats b { color: var(--text); }
-  main {
-    width: 100%;
-    max-width: 900px;
-    padding: 12px 20px 60px;
-    flex: 1;
-  }
+  main { width: 100%; max-width: 900px; padding: 12px 20px 60px; flex: 1; }
 
   .card-panel {
     background: var(--panel);
@@ -57,7 +53,7 @@
     margin-top: 12px;
   }
 
-  /* Stage where the big emoji shows */
+  /* Stage where the big emoji / prompt shows */
   .stage {
     height: 320px;
     border-radius: 14px;
@@ -69,50 +65,36 @@
     position: relative;
     overflow: hidden;
     user-select: none;
-  }
-  .stage .glyph {
-    font-size: 200px;
-    line-height: 1;
-    transition: transform .08s ease, opacity .12s ease;
-  }
-  .stage .glyph.hidden { opacity: 0; transform: scale(.6); }
-  .stage .msg {
-    font-size: 1.3rem;
-    color: var(--muted);
     text-align: center;
-    padding: 0 24px;
   }
-  .stage .countdown {
-    font-size: 160px;
-    font-weight: 700;
-    color: var(--accent);
+  .stage .glyph { font-size: 200px; line-height: 1; }
+  .stage .msg { font-size: 1.3rem; color: var(--muted); padding: 0 24px; }
+  .stage .countdown { font-size: 160px; font-weight: 700; color: var(--accent); }
+  .stage .prompt { display: flex; flex-direction: column; align-items: center; gap: 10px; }
+  .stage .prompt .big { font-size: 2.4rem; font-weight: 700; color: var(--text); }
+  .stage .prompt .sub { font-size: 1rem; color: var(--muted); }
+  .stage .pulse {
+    width: 26px; height: 26px; border-radius: 50%; background: var(--accent);
+    animation: pulse .9s ease-in-out infinite;
   }
-  .progress-dots {
-    display: flex;
-    gap: 8px;
-    justify-content: center;
-    margin-top: 16px;
-    min-height: 14px;
-    flex-wrap: wrap;
-  }
-  .dot {
-    width: 11px; height: 11px; border-radius: 50%;
-    background: var(--border);
-    transition: background .2s;
-  }
+  @keyframes pulse { 0%,100%{ transform: scale(.7); opacity:.5;} 50%{ transform: scale(1.25); opacity:1;} }
+
+  .progress-dots { display: flex; gap: 8px; justify-content: center; margin-top: 16px; min-height: 14px; flex-wrap: wrap; }
+  .dot { width: 11px; height: 11px; border-radius: 50%; background: var(--border); transition: background .2s; }
   .dot.active { background: var(--accent); }
   .dot.done { background: var(--muted); }
 
+  /* Tempo timer bar (strict pace) */
+  .tempo { height: 8px; border-radius: 6px; background: var(--panel-2); border: 1px solid var(--border); margin-top: 16px; overflow: hidden; }
+  .tempo-bar { height: 100%; width: 100%; background: var(--accent); }
+  .tempo-bar.low { background: var(--warn); }
+  .tempo-bar.crit { background: var(--bad); }
+
   .controls { display: flex; gap: 10px; margin-top: 18px; flex-wrap: wrap; }
   button {
-    font: inherit;
-    cursor: pointer;
-    border-radius: 10px;
-    border: 1px solid var(--border);
-    background: var(--panel-2);
-    color: var(--text);
-    padding: 11px 18px;
-    transition: filter .15s, transform .05s;
+    font: inherit; cursor: pointer; border-radius: 10px;
+    border: 1px solid var(--border); background: var(--panel-2); color: var(--text);
+    padding: 11px 18px; transition: filter .15s, transform .05s;
   }
   button:hover { filter: brightness(1.15); }
   button:active { transform: translateY(1px); }
@@ -120,117 +102,55 @@
   button.primary { background: var(--accent); border-color: var(--accent); color: #04121f; font-weight: 600; }
   button.ghost { background: transparent; }
 
-  /* Answer grid */
-  .grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(84px, 1fr));
-    gap: 12px;
-    margin-top: 20px;
-  }
-  .grid button {
-    font-size: 44px;
-    aspect-ratio: 1 / 1;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 0;
-  }
+  /* Card grid */
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(84px, 1fr)); gap: 12px; margin-top: 18px; }
+  .grid button { font-size: 44px; aspect-ratio: 1 / 1; display: flex; align-items: center; justify-content: center; padding: 0; }
+  .grid button.picked { border-color: var(--accent); box-shadow: 0 0 0 2px rgba(77,163,255,.4) inset; }
 
-  .answer-row {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    flex-wrap: wrap;
-    margin-top: 20px;
-    min-height: 60px;
-  }
+  /* Slots row (cards you've shown so far) */
+  .answer-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-top: 18px; min-height: 60px; }
   .answer-label { color: var(--muted); font-size: .9rem; }
   .chip {
-    font-size: 34px;
-    width: 54px; height: 54px;
+    font-size: 30px; width: 50px; height: 50px;
     display: flex; align-items: center; justify-content: center;
-    background: var(--panel-2);
-    border: 1px solid var(--border);
-    border-radius: 10px;
+    background: var(--panel-2); border: 1px solid var(--border); border-radius: 10px;
+    position: relative; transition: border-color .15s;
   }
-  .chip.empty { color: var(--border); }
+  .chip.empty { color: var(--border); font-size: .95rem; }
+  .chip.active { border-color: var(--accent); box-shadow: 0 0 0 2px rgba(77,163,255,.35); }
+  .chip.committed { border-color: var(--muted); }
 
   /* Reveal comparison */
-  .reveal-row {
-    display: flex;
-    gap: 14px;
-    flex-wrap: wrap;
-    margin-top: 20px;
-    justify-content: center;
-  }
-  .reveal-cell {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 6px;
-    opacity: 0;
-    transform: translateY(8px);
-    transition: opacity .25s, transform .25s;
-  }
+  .reveal-row { display: flex; gap: 14px; flex-wrap: wrap; margin-top: 20px; justify-content: center; }
+  .reveal-cell { display: flex; flex-direction: column; align-items: center; gap: 6px; opacity: 0; transform: translateY(8px); transition: opacity .25s, transform .25s; }
   .reveal-cell.show { opacity: 1; transform: none; }
-  .reveal-cell .pair {
-    display: flex; flex-direction: column; gap: 4px;
-    padding: 8px; border-radius: 12px; border: 2px solid var(--border);
-  }
+  .reveal-cell .pair { display: flex; flex-direction: column; gap: 4px; padding: 8px; border-radius: 12px; border: 2px solid var(--border); }
   .reveal-cell.correct .pair { border-color: var(--good); background: rgba(55,214,122,.08); }
   .reveal-cell.wrong .pair { border-color: var(--bad); background: rgba(255,92,108,.08); }
-  .reveal-cell .yours, .reveal-cell .truth {
-    font-size: 40px; width: 56px; text-align: center;
-  }
+  .reveal-cell .yours, .reveal-cell .truth { font-size: 40px; width: 56px; text-align: center; }
+  .reveal-cell .yours.miss { color: var(--bad); }
   .reveal-cell .tag { font-size: .68rem; color: var(--muted); }
   .reveal-cell .mark { font-size: 1.1rem; }
+  .reveal-legend { text-align: center; color: var(--muted); font-size: .8rem; margin-top: 10px; }
 
-  .result-banner {
-    text-align: center;
-    margin-top: 18px;
-    font-size: 1.25rem;
-    font-weight: 600;
-  }
+  .result-banner { text-align: center; margin-top: 18px; font-size: 1.25rem; font-weight: 600; }
   .result-banner.win { color: var(--good); }
   .result-banner.lose { color: var(--bad); }
 
   /* Settings */
-  details.settings {
-    max-width: 900px;
-    width: 100%;
-    margin-top: 18px;
-    background: var(--panel);
-    border: 1px solid var(--border);
-    border-radius: 14px;
-    padding: 4px 20px;
-  }
-  details.settings summary {
-    cursor: pointer;
-    padding: 14px 0;
-    font-weight: 600;
-    color: var(--muted);
-    list-style: none;
-  }
+  details.settings { max-width: 900px; width: 100%; margin-top: 18px; background: var(--panel); border: 1px solid var(--border); border-radius: 14px; padding: 4px 20px; }
+  details.settings summary { cursor: pointer; padding: 14px 0; font-weight: 600; color: var(--muted); list-style: none; }
   details.settings summary::-webkit-details-marker { display: none; }
   details.settings summary::before { content: "⚙ "; }
-  .setting {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 16px;
-    padding: 12px 0;
-    border-top: 1px solid var(--border);
-    flex-wrap: wrap;
-  }
+  .setting { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 12px 0; border-top: 1px solid var(--border); flex-wrap: wrap; }
   .setting label { font-weight: 500; }
   .setting .hint { color: var(--muted); font-size: .82rem; display: block; margin-top: 2px; font-weight: 400; }
   .setting .field { display: flex; align-items: center; gap: 10px; }
   input[type="range"] { width: 180px; }
-  input[type="number"] { width: 70px; font: inherit; padding: 6px 8px; border-radius: 8px; border: 1px solid var(--border); background: var(--panel-2); color: var(--text); }
   select { font: inherit; padding: 8px 10px; border-radius: 8px; border: 1px solid var(--border); background: var(--panel-2); color: var(--text); }
   .val { min-width: 46px; text-align: right; color: var(--accent); font-variant-numeric: tabular-nums; }
   .footnote { color: var(--muted); font-size: .8rem; text-align: center; margin-top: 26px; line-height: 1.5; }
-  .settings-locked { color: var(--bad); font-size: .82rem; }
+  .settings-locked { color: var(--warn); font-size: .82rem; }
 </style>
 </head>
 <body>
@@ -246,28 +166,27 @@
 <main>
   <div class="card-panel">
     <div class="stage" id="stage">
-      <div class="msg" id="stageMsg">Press <b>Start round</b> to begin. Watch the sequence, then repeat it back.</div>
+      <div class="msg" id="stageMsg">Press <b>Start round</b> to begin. Watch the sequence, then show it back one card at a time.</div>
     </div>
     <div class="progress-dots" id="dots"></div>
 
-    <!-- Answer building area -->
-    <div id="answerArea" style="display:none;">
+    <!-- Recall area (card-by-card) -->
+    <div id="recallArea" style="display:none;">
+      <div class="tempo" id="tempo"><div class="tempo-bar" id="tempoBar"></div></div>
       <div class="answer-row">
-        <span class="answer-label">Your answer:</span>
-        <div id="answerChips" style="display:flex;gap:8px;flex-wrap:wrap;"></div>
+        <span class="answer-label">Cards you've shown:</span>
+        <div id="slotChips" style="display:flex;gap:8px;flex-wrap:wrap;"></div>
       </div>
       <div class="grid" id="cardGrid"></div>
     </div>
 
     <!-- Reveal area -->
     <div class="reveal-row" id="revealRow" style="display:none;"></div>
+    <div class="reveal-legend" id="revealLegend" style="display:none;">Top = your card · Bottom = the sequence</div>
     <div class="result-banner" id="resultBanner" style="display:none;"></div>
 
     <div class="controls" id="controls">
       <button class="primary" id="btnStart">Start round</button>
-      <button class="ghost" id="btnUndo" style="display:none;">Undo</button>
-      <button class="ghost" id="btnClear" style="display:none;">Clear</button>
-      <button class="primary" id="btnSubmit" style="display:none;">Lock in &amp; reveal</button>
       <button class="primary" id="btnNext" style="display:none;">Next round</button>
       <button class="ghost" id="btnNewGame" style="display:none;">New game</button>
     </div>
@@ -279,14 +198,11 @@
       <label>Card set size
         <span class="hint">How many distinct cards are in play. Fewer cards = more repeats = harder to track runs.</span>
       </label>
-      <div class="field">
-        <input type="range" id="setSize" min="3" max="20" value="8">
-        <span class="val" id="setSizeVal">8</span>
-      </div>
+      <div class="field"><input type="range" id="setSize" min="3" max="20" value="8"><span class="val" id="setSizeVal">8</span></div>
     </div>
     <div class="setting">
       <label>Progression
-        <span class="hint">Grow: +1 card each round you clear (out on a miss). Fixed: same length every round, tracks your streak.</span>
+        <span class="hint">Grow: +1 card each round you clear (out on a miss). Fixed: same length every round.</span>
       </label>
       <div class="field">
         <select id="mode">
@@ -299,36 +215,36 @@
       <label>Starting / fixed length
         <span class="hint">Sequence length for round 1 (Grow) or every round (Fixed).</span>
       </label>
+      <div class="field"><input type="range" id="startLen" min="2" max="15" value="3"><span class="val" id="startLenVal">3</span></div>
+    </div>
+    <div class="setting">
+      <label>Watch interval
+        <span class="hint">Time each card is shown while you watch the sequence. Real game is ~1–2s.</span>
+      </label>
+      <div class="field"><input type="range" id="interval" min="500" max="3000" step="100" value="1500"><span class="val" id="intervalVal">1.5s</span></div>
+    </div>
+    <div class="setting">
+      <label>Recall pace
+        <span class="hint">Strict: the beat auto-advances — show each card in time or that slot is a miss (real-game pressure). Manual: advances when you pick, no timeout.</span>
+      </label>
       <div class="field">
-        <input type="range" id="startLen" min="2" max="15" value="3">
-        <span class="val" id="startLenVal">3</span>
+        <select id="recallPace">
+          <option value="strict">Strict tempo (auto-advance)</option>
+          <option value="manual">Manual (advance when I pick)</option>
+        </select>
       </div>
     </div>
     <div class="setting">
-      <label>Reveal interval
-        <span class="hint">Time each card is shown during the sequence. Real game is ~1–2s.</span>
+      <label>Recall tempo
+        <span class="hint">Seconds per card during recall (strict pace only). This is the beat you must keep up with.</span>
       </label>
-      <div class="field">
-        <input type="range" id="interval" min="500" max="3000" step="100" value="1500">
-        <span class="val" id="intervalVal">1.5s</span>
-      </div>
+      <div class="field"><input type="range" id="recallInterval" min="800" max="6000" step="100" value="2000"><span class="val" id="recallIntervalVal">2.0s</span></div>
     </div>
     <div class="setting">
-      <label>Countdown before reveal
-        <span class="hint">The "3, 2, 1" before your answer is revealed.</span>
+      <label>Countdown before recall
+        <span class="hint">The "3, 2, 1" before you start showing your cards.</span>
       </label>
-      <div class="field">
-        <input type="range" id="countdown" min="0" max="5" value="3">
-        <span class="val" id="countdownVal">3</span>
-      </div>
-    </div>
-    <div class="setting">
-      <label>Auto-lock when full
-        <span class="hint">Automatically reveal once you've entered the full sequence length.</span>
-      </label>
-      <div class="field">
-        <input type="checkbox" id="autoLock">
-      </div>
+      <div class="field"><input type="range" id="countdown" min="0" max="5" value="3"><span class="val" id="countdownVal">3</span></div>
     </div>
     <div class="setting" style="border-top:1px solid var(--border);">
       <span class="settings-locked" id="settingsLocked" style="visibility:hidden;">Settings apply to the next game.</span>
@@ -337,8 +253,8 @@
   </details>
 
   <p class="footnote">
-    Watch the sequence &rarr; click the cards back in the same order &rarr; lock in for the <b>3-2-1 reveal</b>.<br>
-    Get the whole sequence right to advance. Session best = longest sequence you've nailed. Good luck next week 🍀
+    Watch the sequence &rarr; on <b>3-2-1</b>, show your cards one at a time at the beat &rarr; no peeking back, no rearranging.<br>
+    Get the whole sequence right to advance. Session best = longest sequence you've shown perfectly. Good luck next week 🍀
   </p>
 </main>
 
@@ -346,11 +262,10 @@
 (function () {
   "use strict";
 
-  // Emoji pool — simple, distinct concepts. First N used based on set size.
   const POOL = ["⛵","🪣","🐴","🏠","⭐","🐟","🌳","🔑","☕","☀️","🌙","🌸","🍎","🚗","🐶","🐱","🎸","🍄","🦋","🎈"];
 
   // ---- persisted config (sessionStorage: standalone per browser session) ----
-  const DEFAULTS = { setSize: 8, mode: "grow", startLen: 3, interval: 1500, countdown: 3, autoLock: false };
+  const DEFAULTS = { setSize: 8, mode: "grow", startLen: 3, interval: 1500, recallPace: "strict", recallInterval: 2000, countdown: 3 };
   function loadCfg() {
     try { return Object.assign({}, DEFAULTS, JSON.parse(sessionStorage.getItem("ft_cfg") || "{}")); }
     catch (e) { return Object.assign({}, DEFAULTS); }
@@ -363,79 +278,59 @@
     best: Number(sessionStorage.getItem("ft_best") || 0),
     games: Number(sessionStorage.getItem("ft_games") || 0),
   };
-  function saveSession() {
-    sessionStorage.setItem("ft_best", session.best);
-    sessionStorage.setItem("ft_games", session.games);
-  }
+  function saveSession() { sessionStorage.setItem("ft_best", session.best); sessionStorage.setItem("ft_games", session.games); }
 
   // ---- element refs ----
   const $ = (id) => document.getElementById(id);
-  const stage = $("stage"), stageMsg = $("stageMsg"), dots = $("dots");
-  const answerArea = $("answerArea"), answerChips = $("answerChips"), cardGrid = $("cardGrid");
-  const revealRow = $("revealRow"), resultBanner = $("resultBanner");
-  const btnStart = $("btnStart"), btnUndo = $("btnUndo"), btnClear = $("btnClear"),
-        btnSubmit = $("btnSubmit"), btnNext = $("btnNext"), btnNewGame = $("btnNewGame"),
-        btnNewSession = $("btnNewSession");
+  const stage = $("stage"), dots = $("dots");
+  const recallArea = $("recallArea"), slotChips = $("slotChips"), cardGrid = $("cardGrid");
+  const tempo = $("tempo"), tempoBar = $("tempoBar");
+  const revealRow = $("revealRow"), revealLegend = $("revealLegend"), resultBanner = $("resultBanner");
+  const btnStart = $("btnStart"), btnNext = $("btnNext"), btnNewGame = $("btnNewGame"), btnNewSession = $("btnNewSession");
   const statLen = $("statLen"), statBest = $("statBest"), statGames = $("statGames");
   const settingsLocked = $("settingsLocked");
 
   // ---- game state ----
-  let currentLen = cfg.startLen;   // length of the round about to be / being played
-  let deck = [];                   // active card set (indices into POOL)
-  let sequence = [];               // true sequence, array of card indices
-  let answer = [];                 // player's answer, array of card indices
-  let phase = "idle";              // idle | showing | answering | revealing | done
-  let gameActive = false;          // are we mid-game (a run of rounds)?
+  let currentLen = cfg.startLen;
+  let deck = [];
+  let sequence = [];
+  let picks = [];            // player's shown cards; picks[i] may be undefined (never shown)
+  let recallIndex = 0;       // slot currently being asked for
+  let phase = "idle";        // idle | showing | recall | revealing | done
+  let gameActive = false;
   let timers = [];
+  let beatDeadline = 0;      // performance.now() timestamp the current beat ends (strict)
+  let rafId = null;
 
-  function clearTimers() { timers.forEach(clearTimeout); timers = []; }
+  function clearTimers() { timers.forEach(clearTimeout); timers = []; if (rafId) { cancelAnimationFrame(rafId); rafId = null; } }
   function later(fn, ms) { const t = setTimeout(fn, ms); timers.push(t); return t; }
 
-  function buildDeck() {
-    const n = Math.min(cfg.setSize, POOL.length);
-    deck = [];
-    for (let i = 0; i < n; i++) deck.push(i);
-  }
-
-  function updateStats() {
-    statLen.textContent = currentLen;
-    statBest.textContent = session.best;
-    statGames.textContent = session.games;
-  }
+  function buildDeck() { const n = Math.min(cfg.setSize, POOL.length); deck = []; for (let i = 0; i < n; i++) deck.push(i); }
+  function updateStats() { statLen.textContent = currentLen; statBest.textContent = session.best; statGames.textContent = session.games; }
 
   // ---------- SETTINGS UI ----------
   function bindRange(id, valId, fmt, key) {
     const el = $(id), val = $(valId);
-    el.value = cfg[key];
-    val.textContent = fmt(cfg[key]);
-    el.addEventListener("input", () => {
-      cfg[key] = Number(el.value);
-      val.textContent = fmt(cfg[key]);
-      saveCfg();
-      onSettingChanged();
-    });
+    el.value = cfg[key]; val.textContent = fmt(cfg[key]);
+    el.addEventListener("input", () => { cfg[key] = Number(el.value); val.textContent = fmt(cfg[key]); saveCfg(); onSettingChanged(); });
   }
   bindRange("setSize", "setSizeVal", v => v, "setSize");
   bindRange("startLen", "startLenVal", v => v, "startLen");
   bindRange("interval", "intervalVal", v => (v/1000).toFixed(1) + "s", "interval");
+  bindRange("recallInterval", "recallIntervalVal", v => (v/1000).toFixed(1) + "s", "recallInterval");
   bindRange("countdown", "countdownVal", v => v, "countdown");
 
   const modeSel = $("mode");
   modeSel.value = cfg.mode;
   modeSel.addEventListener("change", () => { cfg.mode = modeSel.value; saveCfg(); onSettingChanged(); });
 
-  const autoLockCb = $("autoLock");
-  autoLockCb.checked = cfg.autoLock;
-  autoLockCb.addEventListener("change", () => { cfg.autoLock = autoLockCb.checked; saveCfg(); });
+  const paceSel = $("recallPace");
+  paceSel.value = cfg.recallPace;
+  paceSel.addEventListener("change", () => { cfg.recallPace = paceSel.value; saveCfg(); onSettingChanged(); });
 
   function onSettingChanged() {
-    if (gameActive) {
-      settingsLocked.style.visibility = "visible";
-    } else {
-      // not mid-game: apply immediately
-      currentLen = cfg.startLen;
-      updateStats();
-    }
+    if (gameActive) { settingsLocked.style.visibility = "visible"; }
+    else { currentLen = cfg.startLen; updateStats(); }
   }
 
   // ---------- RENDER HELPERS ----------
@@ -447,25 +342,10 @@
       dots.appendChild(d);
     }
   }
-
-  function showGlyph(cardIdx) {
-    stage.innerHTML = "";
-    const g = document.createElement("div");
-    g.className = "glyph";
-    g.textContent = POOL[cardIdx];
-    stage.appendChild(g);
-  }
-
-  function showMessage(html) {
-    stage.innerHTML = '<div class="msg">' + html + '</div>';
-  }
-
+  function showGlyph(cardIdx) { stage.innerHTML = ""; const g = document.createElement("div"); g.className = "glyph"; g.textContent = POOL[cardIdx]; stage.appendChild(g); }
+  function showMessage(html) { stage.innerHTML = '<div class="msg">' + html + '</div>'; }
   function showControls(map) {
-    // map: {start, undo, clear, submit, next, newGame}
     btnStart.style.display   = map.start   ? "" : "none";
-    btnUndo.style.display    = map.undo    ? "" : "none";
-    btnClear.style.display   = map.clear   ? "" : "none";
-    btnSubmit.style.display  = map.submit  ? "" : "none";
     btnNext.style.display    = map.next    ? "" : "none";
     btnNewGame.style.display = map.newGame ? "" : "none";
   }
@@ -473,22 +353,20 @@
   // ---------- GAME FLOW ----------
   function startRound() {
     clearTimers();
-    if (!gameActive) { gameActive = true; }
+    gameActive = true;
     buildDeck();
-    // guard: sequence can't be longer than deck? It CAN (repeats allowed). Real game repeats cards.
     sequence = [];
-    for (let i = 0; i < currentLen; i++) {
-      sequence.push(deck[Math.floor(Math.random() * deck.length)]);
-    }
-    answer = [];
+    for (let i = 0; i < currentLen; i++) sequence.push(deck[Math.floor(Math.random() * deck.length)]);
+    picks = new Array(currentLen).fill(undefined);
+    recallIndex = 0;
     phase = "showing";
-    answerArea.style.display = "none";
-    revealRow.style.display = "none";
-    revealRow.innerHTML = "";
+    recallArea.style.display = "none";
+    revealRow.style.display = "none"; revealRow.innerHTML = "";
+    revealLegend.style.display = "none";
     resultBanner.style.display = "none";
-    settingsLocked.style.visibility = gameActive ? "visible" : "hidden";
+    settingsLocked.style.visibility = "visible";
     updateStats();
-    showControls({}); // hide all during show
+    showControls({});
     playSequence();
   }
 
@@ -496,32 +374,42 @@
     showMessage("Watch closely…");
     renderDots(currentLen, -1);
     let i = 0;
-    const gap = 220; // brief blank between cards
+    const gap = 220;
     function step() {
-      if (i >= sequence.length) {
-        later(() => beginAnswer(), cfg.interval * 0.5);
-        return;
-      }
+      if (i >= sequence.length) { later(getReady, cfg.interval * 0.5); return; }
       showGlyph(sequence[i]);
       renderDots(currentLen, i);
-      later(() => {
-        // blank flash so consecutive identical cards are distinguishable
-        stage.innerHTML = "";
-        i++;
-        later(step, gap);
-      }, cfg.interval);
+      later(() => { stage.innerHTML = ""; i++; later(step, gap); }, cfg.interval);
     }
     later(step, 500);
   }
 
-  function beginAnswer() {
-    phase = "answering";
-    showMessage("Now repeat the sequence — click the cards in order.");
+  function getReady() {
+    showMessage("🫳 Get ready to show your cards…");
     renderDots(currentLen, -1);
+    later(startCountdown, 1200);
+  }
+
+  function startCountdown() {
+    if (cfg.countdown <= 0) { beginRecall(); return; }
+    let n = cfg.countdown;
+    stage.innerHTML = '<div class="countdown">' + n + '</div>';
+    const tick = () => {
+      n--;
+      if (n > 0) { stage.innerHTML = '<div class="countdown">' + n + '</div>'; later(tick, 800); }
+      else { stage.innerHTML = '<div class="countdown">Show!</div>'; later(beginRecall, 600); }
+    };
+    later(tick, 800);
+  }
+
+  function beginRecall() {
+    phase = "recall";
+    recallIndex = 0;
+    recallArea.style.display = "";
     renderGrid();
-    renderAnswerChips();
-    answerArea.style.display = "";
-    updateSubmitState();
+    renderSlots();
+    tempo.style.display = (cfg.recallPace === "strict") ? "" : "none";
+    nextSlot();
   }
 
   function renderGrid() {
@@ -529,92 +417,118 @@
     deck.forEach((cardIdx) => {
       const b = document.createElement("button");
       b.textContent = POOL[cardIdx];
+      b.dataset.card = cardIdx;
       b.setAttribute("aria-label", "card " + POOL[cardIdx]);
-      b.addEventListener("click", () => addToAnswer(cardIdx));
+      b.addEventListener("click", () => pickCard(cardIdx));
       cardGrid.appendChild(b);
     });
   }
 
-  function renderAnswerChips() {
-    answerChips.innerHTML = "";
+  function renderSlots() {
+    slotChips.innerHTML = "";
     for (let i = 0; i < currentLen; i++) {
       const c = document.createElement("div");
-      if (i < answer.length) { c.className = "chip"; c.textContent = POOL[answer[i]]; }
-      else { c.className = "chip empty"; c.textContent = (i + 1); }
-      answerChips.appendChild(c);
+      if (i === recallIndex && phase === "recall") {
+        c.className = "chip active";
+        c.textContent = picks[i] !== undefined ? POOL[picks[i]] : "?";
+      } else if (picks[i] !== undefined) {
+        c.className = "chip committed";
+        c.textContent = POOL[picks[i]];
+      } else if (i < recallIndex) {
+        c.className = "chip empty"; c.textContent = "—";   // beat passed with no card shown
+      } else {
+        c.className = "chip empty"; c.textContent = (i + 1);
+      }
+      slotChips.appendChild(c);
     }
   }
 
-  function addToAnswer(cardIdx) {
-    if (phase !== "answering") return;
-    if (answer.length >= currentLen) return;
-    answer.push(cardIdx);
-    renderAnswerChips();
-    updateSubmitState();
-    if (cfg.autoLock && answer.length === currentLen) {
-      later(() => doReveal(), 250);
+  function highlightGridPick() {
+    // mark the grid button matching the current slot's pick
+    const cur = picks[recallIndex];
+    cardGrid.querySelectorAll("button").forEach((b) => {
+      b.classList.toggle("picked", cur !== undefined && Number(b.dataset.card) === cur);
+    });
+  }
+
+  function nextSlot() {
+    if (recallIndex >= currentLen) { doReveal(); return; }
+    renderSlots();
+    highlightGridPick();
+    const ord = (recallIndex + 1);
+    stage.innerHTML =
+      '<div class="prompt">' +
+        '<div class="pulse"></div>' +
+        '<div class="big">Show card ' + ord + ' of ' + currentLen + '</div>' +
+        '<div class="sub">' + (cfg.recallPace === "strict" ? "…on the beat" : "pick when you\'re ready") + '</div>' +
+      '</div>';
+    if (cfg.recallPace === "strict") startBeat();
+  }
+
+  function startBeat() {
+    const dur = cfg.recallInterval;
+    beatDeadline = performance.now() + dur;
+    // reset bar to full without animation, then let rAF drive the width
+    tempoBar.className = "tempo-bar";
+    tempoBar.style.width = "100%";
+    const tickBar = () => {
+      const remain = beatDeadline - performance.now();
+      const frac = Math.max(0, remain / dur);
+      tempoBar.style.width = (frac * 100) + "%";
+      tempoBar.className = "tempo-bar" + (frac < 0.2 ? " crit" : (frac < 0.5 ? " low" : ""));
+      if (remain <= 0) { advanceSlot(); return; }
+      rafId = requestAnimationFrame(tickBar);
+    };
+    rafId = requestAnimationFrame(tickBar);
+  }
+
+  function advanceSlot() {
+    // called when the beat ends (strict) or immediately after a pick (manual)
+    if (rafId) { cancelAnimationFrame(rafId); rafId = null; }
+    recallIndex++;
+    if (recallIndex >= currentLen) { doReveal(); }
+    else { nextSlot(); }
+  }
+
+  function pickCard(cardIdx) {
+    if (phase !== "recall") return;
+    if (recallIndex >= currentLen) return;
+    picks[recallIndex] = cardIdx;
+    renderSlots();
+    highlightGridPick();
+    if (cfg.recallPace === "manual") {
+      // brief beat so the pick registers visually, then advance
+      later(advanceSlot, 300);
     }
-  }
-
-  function updateSubmitState() {
-    showControls({ undo: answer.length > 0, clear: answer.length > 0, submit: true });
-    btnSubmit.disabled = answer.length !== currentLen;
-    btnSubmit.textContent = answer.length === currentLen
-      ? "Lock in & reveal"
-      : "Lock in & reveal (" + answer.length + "/" + currentLen + ")";
-  }
-
-  function undo() {
-    if (phase !== "answering" || !answer.length) return;
-    answer.pop();
-    renderAnswerChips();
-    updateSubmitState();
-  }
-  function clearAnswer() {
-    if (phase !== "answering") return;
-    answer = [];
-    renderAnswerChips();
-    updateSubmitState();
+    // strict: pick is recorded; you may overwrite until the beat auto-advances
   }
 
   function doReveal() {
-    if (phase !== "answering") return;
-    if (answer.length !== currentLen) return;
-    phase = "revealing";
-    answerArea.style.display = "none";
-    showControls({});
     clearTimers();
-
-    if (cfg.countdown > 0) {
-      let n = cfg.countdown;
-      stage.innerHTML = '<div class="countdown">' + n + '</div>';
-      const tick = () => {
-        n--;
-        if (n > 0) { stage.innerHTML = '<div class="countdown">' + n + '</div>'; later(tick, 800); }
-        else { stage.innerHTML = '<div class="countdown">Reveal!</div>'; later(revealCards, 700); }
-      };
-      later(tick, 800);
-    } else {
-      revealCards();
-    }
+    phase = "revealing";
+    recallArea.style.display = "none";
+    tempo.style.display = "none";
+    showControls({});
+    revealCards();
   }
 
   function revealCards() {
     showMessage("Your cards vs. the sequence:");
     renderDots(currentLen, -1);
-    revealRow.style.display = "";
-    revealRow.innerHTML = "";
+    revealRow.style.display = ""; revealRow.innerHTML = "";
+    revealLegend.style.display = "";
     let allCorrect = true;
 
     const cells = sequence.map((truthIdx, i) => {
-      const yours = answer[i];
+      const yours = picks[i];
       const correct = yours === truthIdx;
       if (!correct) allCorrect = false;
       const cell = document.createElement("div");
       cell.className = "reveal-cell";
+      const yoursGlyph = (yours !== undefined) ? POOL[yours] : "▢";
       cell.innerHTML =
         '<div class="pair">' +
-          '<div class="yours">' + POOL[yours] + '</div>' +
+          '<div class="yours' + (yours === undefined ? " miss" : "") + '">' + yoursGlyph + '</div>' +
           '<div class="truth">' + POOL[truthIdx] + '</div>' +
         '</div>' +
         '<div class="tag">#' + (i+1) + '</div>' +
@@ -624,14 +538,13 @@
       return cell;
     });
 
-    // reveal one at a time
     let i = 0;
     const step = () => {
       if (i >= cells.length) { finishReveal(allCorrect); return; }
       const cell = cells[i];
       cell.classList.add("show", cell._correct ? "correct" : "wrong");
       i++;
-      later(step, 650);
+      later(step, 500);
     };
     later(step, 300);
   }
@@ -640,55 +553,37 @@
     phase = "done";
     resultBanner.style.display = "";
     if (allCorrect) {
-      // record best = longest fully-correct sequence
-      if (currentLen > session.best) { session.best = currentLen; }
+      if (currentLen > session.best) session.best = currentLen;
       resultBanner.className = "result-banner win";
-      resultBanner.textContent = "✔ Perfect! Sequence of " + currentLen + " nailed.";
-      saveSession();
-      updateStats();
-      if (cfg.mode === "grow") {
-        showControls({ next: true, newGame: true });
-        btnNext.textContent = "Next round (" + (currentLen + 1) + ")";
-      } else {
-        showControls({ next: true, newGame: true });
-        btnNext.textContent = "Next round (" + currentLen + ")";
-      }
+      resultBanner.textContent = "✔ Perfect! Sequence of " + currentLen + " shown clean.";
+      saveSession(); updateStats();
+      showControls({ next: true, newGame: true });
+      btnNext.textContent = "Next round (" + (cfg.mode === "grow" ? currentLen + 1 : currentLen) + ")";
     } else {
       resultBanner.className = "result-banner lose";
-      const gotRight = sequence.filter((t, i) => answer[i] === t).length;
-      resultBanner.textContent = "✗ Missed it — " + gotRight + "/" + currentLen + " correct.";
+      const gotRight = sequence.filter((t, i) => picks[i] === t).length;
+      resultBanner.textContent = "✗ Missed it — " + gotRight + "/" + currentLen + " correct. You'd be out.";
       endGame();
       showControls({ newGame: true });
       btnNewGame.textContent = "New game";
     }
   }
 
-  function nextRound() {
-    if (cfg.mode === "grow") currentLen += 1;
-    // fixed: keep same length
-    startRound();
-  }
+  function nextRound() { if (cfg.mode === "grow") currentLen += 1; startRound(); }
 
-  function endGame() {
-    // a game concluded (loss, or user starts new game)
-    session.games += 1;
-    saveSession();
-    gameActive = false;
-    settingsLocked.style.visibility = "hidden";
-    updateStats();
-  }
+  function endGame() { session.games += 1; saveSession(); gameActive = false; settingsLocked.style.visibility = "hidden"; updateStats(); }
 
   function newGame() {
     clearTimers();
-    if (gameActive) { endGame(); }
-    // apply any pending settings
+    if (gameActive) endGame();
     currentLen = cfg.startLen;
     phase = "idle";
-    answer = []; sequence = [];
-    answerArea.style.display = "none";
-    revealRow.style.display = "none";
-    revealRow.innerHTML = "";
+    picks = []; sequence = []; recallIndex = 0;
+    recallArea.style.display = "none";
+    revealRow.style.display = "none"; revealRow.innerHTML = "";
+    revealLegend.style.display = "none";
     resultBanner.style.display = "none";
+    tempo.style.display = "none";
     dots.innerHTML = "";
     showMessage("Ready. Press <b>Start round</b> to begin a new game.");
     showControls({ start: true });
@@ -696,30 +591,18 @@
     updateStats();
   }
 
-  function resetSession() {
-    clearTimers();
-    session.best = 0; session.games = 0;
-    saveSession();
-    gameActive = false;
-    newGame();
-  }
+  function resetSession() { clearTimers(); session.best = 0; session.games = 0; saveSession(); gameActive = false; newGame(); }
 
   // ---------- EVENT WIRING ----------
-  btnStart.addEventListener("click", () => { settingsLocked.style.visibility = "hidden"; startRound(); });
-  btnUndo.addEventListener("click", undo);
-  btnClear.addEventListener("click", clearAnswer);
-  btnSubmit.addEventListener("click", doReveal);
+  btnStart.addEventListener("click", () => { settingsLocked.style.visibility = "visible"; startRound(); });
   btnNext.addEventListener("click", nextRound);
   btnNewGame.addEventListener("click", newGame);
   btnNewSession.addEventListener("click", resetSession);
 
-  // keyboard: number keys pick nth card while answering; Enter locks in; Backspace undoes
   document.addEventListener("keydown", (e) => {
-    if (phase === "answering") {
-      if (e.key === "Backspace") { e.preventDefault(); undo(); return; }
-      if (e.key === "Enter" && answer.length === currentLen) { e.preventDefault(); doReveal(); return; }
+    if (phase === "recall") {
       const num = parseInt(e.key, 10);
-      if (!isNaN(num) && num >= 1 && num <= deck.length) { addToAnswer(deck[num - 1]); }
+      if (!isNaN(num) && num >= 1 && num <= deck.length) { pickCard(deck[num - 1]); }
     } else if ((phase === "idle" || phase === "done") && e.key === "Enter") {
       if (btnNext.style.display !== "none") nextRound();
       else if (btnStart.style.display !== "none") startRound();

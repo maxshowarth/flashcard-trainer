@@ -1,4 +1,5 @@
 .DS_Store
 .remember/
+.isaac/
 node_modules/
 *.log
